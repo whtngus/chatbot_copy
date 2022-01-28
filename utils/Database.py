@@ -1,17 +1,15 @@
 import pymysql
 import pymysql.cursors
 import logging
-
+import sqlite3
 
 class Database:
     '''
     database 제어
     '''
 
-    def __init__(self, host, user, password, db_name, charset='utf8'):
+    def __init__(self, host, db_name, charset='utf8'):
         self.host = host
-        self.user = user
-        self.password = password
         self.charset = charset
         self.db_name = db_name
         self.conn = None
@@ -20,22 +18,11 @@ class Database:
     def connect(self):
         if self.conn != None:
             return
-
-        self.conn = pymysql.connect(
-            host=self.host,
-            user=self.user,
-            password=self.password,
-            db=self.db_name,
-            charset=self.charset
-        )
+        self.conn = sqlite3.connect(self.host, check_same_thread=False)
 
     # DB 연결 닫기
     def close(self):
         if self.conn is None:
-            return
-
-        if not self.conn.open:
-            self.conn = None
             return
         self.conn.close()
         self.conn = None
@@ -60,9 +47,9 @@ class Database:
         result = None
 
         try:
-            with self.conn.cursor(pymysql.cursors.DictCursor) as cursor:
-                cursor.execute(sql)
-                result = cursor.fetchone()
+            cursor = self.conn.cursor()
+            cursor.execute(sql)
+            result = cursor.fetchone()
         except Exception as ex:
             logging.error(ex)
 

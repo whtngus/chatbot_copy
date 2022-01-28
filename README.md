@@ -2,7 +2,9 @@
 
 본 저장소는 "처음 배우는 딥러닝 챗봇" 의 예제 코드를 공유하는 저장소입니다.
 
+원본 저장소 github 주소 :  https://github.com/keiraydev/chatbot
 
+모델 참고 저장소 github 주소 :  https://github.com/hyunwoongko/kochat
 
 # 챗봇 코드 변경하기
 

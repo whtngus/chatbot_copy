@@ -18,7 +18,7 @@ class FindAnswer:
             sql = sql + where
 
         # 동일한 답변이 2개 이상인 경우, 랜덤으로 선택
-        sql = sql + " order by rand() limit 1"
+        sql = sql + " order by RANDOM() limit 1"
         return sql
 
     # 답변 검색
@@ -31,8 +31,13 @@ class FindAnswer:
         if answer is None:
             sql = self._make_query(intent_name, None)
             answer = self.db.select_one(sql)
+        else:
+            answer = {
+                "answer": answer[4],
+                "answer_image" : answer[5]
+            }
 
-        return (answer['answer'], answer['answer_image'])
+        return answer['answer'], answer['answer_image']
 
     # NER 태그를 실제 입력된 단어로 변환
     def tag_to_word(self, ner_predicts, answer):
