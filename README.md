@@ -13,3 +13,13 @@ sqlite file db로 서버구동 없이 돌아가도록 변경
 - tensroflow -> pytorch
 
 모델 부분만 pytorch로 변경
+
+# 실행 방법
+
+- db 생성
+
+```buildoutcfg
+train_tools/qna 디렉토리
+create_train_data_table.py 실행
+load_train_data.py 실행
+```
