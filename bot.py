@@ -57,7 +57,6 @@ def to_client(conn, addr, params):
             f = FindAnswer(db)
             answer_text, answer_image = f.search(intent_name, ner_tags)
             answer = f.tag_to_word(ner_predicts, answer_text)
-
         except:
             answer = "죄송해요 무슨 말인지 모르겠어요. 조금 더 공부 할게요."
             answer_image = None
@@ -85,7 +84,7 @@ if __name__ == '__main__':
 
     # 질문/답변 학습 디비 연결 객체 생성
     db = Database(
-        host=DB_HOST, user=DB_USER, password=DB_PASSWORD, db_name=DB_NAME
+        host=DB_HOST, db_name=DB_NAME
     )
     print("DB 접속")
 

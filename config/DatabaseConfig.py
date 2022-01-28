@@ -1,4 +1,4 @@
-DB_HOST = "127.0.0.1"
+DB_HOST = './chatbot.db'
 DB_USER = "homestead"
 DB_PASSWORD = "secret"
 DB_NAME = "homestead"
