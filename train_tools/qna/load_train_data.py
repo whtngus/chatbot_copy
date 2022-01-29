@@ -7,11 +7,13 @@ try:
 
     conn = sqlite3.connect("../../chatbot.db")
     cursor = conn.cursor()
-    sql = """
-    drop table chatbot_train_data
-    """
-    cursor.execute(sql)
-
+    try:
+        sql = """
+        drop table chatbot_train_data
+        """
+        cursor.execute(sql)
+    except:
+        print('table not exist')
     # 테이블 생성 sql 정의
     sql = '''
       CREATE TABLE chatbot_train_data (
