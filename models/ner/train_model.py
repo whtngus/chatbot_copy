@@ -42,7 +42,7 @@ for t in corpus:
     sentences.append(sentence)
     tags.append(bio_tag)
 
-print("샘플 크기 : \n", len(sentences))
+print("샘플 크기 : \n", len(sentences))  
 print("0번 째 샘플 단어 시퀀스 : \n", sentences[0])
 print("0번 째 샘플 bio 태그 : \n", tags[0])
 print("샘플 단어 시퀀스 최대 길이 :", max(len(l) for l in sentences))
