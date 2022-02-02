@@ -170,14 +170,21 @@ class BiLSTM_CRF(nn.Module):
         return score, tag_seq
 
 class CustomDataset(Dataset):
-    def __init__(self, training_data):
+    def __init__(self, training_data, vocab, tags, embedding_dim):
         self.training_data = training_data
+        self.embedding_dim = embedding_dim
+        self.vcoab = vocab
+        self.tags = tags
 
     def __len__(self):
         return len(self.training_data) - 1
 
     def __getitem__(self, idx):
-        return self.training_data[idx]
+        target = self.training_data[idx]
+        padding_size = self.embedding_dim - len(target[0])
+        x = torch.tensor([self.vcoab[i] for i in target[0]] + [self.vcoab['OOV']] * padding_size)
+        y = torch.tensor([self.tags[i] for i in target[1]] + [self.tags['O']] * padding_size)
+        return x, y
 
 def do_train(model):
     # Make sure prepare_sequence from earlier in the LSTM section is loaded
@@ -190,8 +197,10 @@ def do_train(model):
 
             # Step 2. Get our inputs ready for the network, that is,
             # turn them into Tensors of word indices.
-            sentence_in = prepare_sequence(sentence, word_to_ix).cuda()
-            targets = torch.tensor([tag_to_ix[t[0]] for t in tags], dtype=torch.long)
+            # sentence_in = prepare_sequence(sentence, word_to_ix).cuda()
+            # targets = torch.tensor([tag_to_ix[t[0]] for t in tags], dtype=torch.long)
+            sentence_in = torch.tensor(sentence, dtype=torch.long).cuda()
+            targets = torch.tensor(tags, dtype=torch.long)
 
             # Step 3. Run our forward pass.
             loss = model.neg_log_likelihood(sentence_in, targets)
@@ -207,7 +216,7 @@ def do_train(model):
 if __name__ == "__main__":
     START_TAG = "<START>"
     STOP_TAG = "<STOP>"
-    EMBEDDING_DIM = 30
+    EMBEDDING_DIM = 100
     HIDDEN_DIM = 30
     p = Preprocess(word2index_dic='../../train_tools/dict/chatbot_dict.bin',
                    userdic='../../utils/user_dic.tsv')
@@ -234,8 +243,8 @@ if __name__ == "__main__":
     model = BiLSTM_CRF(len(word_to_ix), tag_to_ix, EMBEDDING_DIM, HIDDEN_DIM).cuda()
     optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=1e-4)
 
-    training_dataset = CustomDataset(train)
-    training_loader = torch.utils.data.DataLoader(training_dataset, batch_size=1, shuffle=True, num_workers=2)
+    training_dataset = CustomDataset(train, word_to_ix, tag_to_ix, EMBEDDING_DIM)
+    training_loader = torch.utils.data.DataLoader(training_dataset, batch_size=64, shuffle=True, num_workers=2)
     do_train(model)
     torch.save(model.state_dict(), './ner_model.bin')
     pickle.dump(word_to_ix , open('word_to_ix','wb'))
