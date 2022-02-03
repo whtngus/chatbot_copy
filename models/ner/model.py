@@ -9,9 +9,17 @@ from tqdm import tqdm
 import pickle
 from torch.utils.data import Dataset
 from tensorflow.keras import preprocessing
-# https://github.com/TheAnig/NER-LSTM-CNN-Pytorch
-
+import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
+writer = SummaryWriter()
 torch.manual_seed(1)
+import sys, os
+
+
+import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 
 class AdamNet(nn.Module):
     def __init__(self, embedding_dim, hidden_dim, vocab_size, tagset_size):
@@ -52,33 +60,49 @@ def prepare_sequence(seq, to_ix):
 
 def do_train(model, num_epochs,train, dev):
     # Training Loop
-    best_accuracy = 0
+    best_loss = 0
+    step = 0
     for epoch in range(num_epochs):
-        print("epoch : epoch")
+        epoch_loss = 0
+        print("epoch : {}".format(epoch))
         # Put model into training mode
         model.train()
-        for sentence, tags in training_data:
+        for i, (sentence, tags) in enumerate(tqdm(training_data)):
             # Clear gradient
-            model.zero_grad()
-            # Prepare the sentence for network input
-            input_sentence = prepare_sequence(sentence, word_to_ix)
-            targets = prepare_sequence(tags, tag_to_ix)
-            # Move the data over to the GPU
-            input_sentence = input_sentence.to(device)
-            targets = targets.to(device)
-            # Run the forward pass
-            tag_scores = model(input_sentence)
-            # Calculate the loss
-            loss = loss_function(tag_scores, targets)
-            # Backward pass
-            loss.backward()
-            # Update model parameters
-            optimizer.step()
-
-        if cur_accuracy > best_accuracy:
+            try:
+                if i == 41219:
+                    continue
+                # 41219
+                model.zero_grad()
+                # Prepare the sentence for network input
+                input_sentence = prepare_sequence(sentence, word_to_ix)
+                targets = prepare_sequence(tags, tag_to_ix)
+                # Move the data over to the GPU
+                input_sentence = input_sentence.to(device)
+                targets = targets.to(device)
+                # Run the forward pass
+                tag_scores = model(input_sentence)
+                # Calculate the loss
+                loss = loss_function(tag_scores, targets)
+                # Backward pass
+                loss.backward()
+                # Update model parameters
+                optimizer.step()
+                loss = loss.item()
+                writer.add_scalar("Loss/train_step", loss, step)
+                step+=1
+            except Exception as e:
+                exc_type, exc_obj, exc_tb = sys.exc_info()
+                fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+                print(exc_type, fname, exc_tb.tb_lineno)
+                print(e)
+                print()
+        torch.save(model.state_dict(), f'./model/model_{epoch}.pt')
+        if best_loss > epoch_loss:
+            best_loss = epoch_loss
             best_model = model
-
-    torch.save(best_model.state_dict(), 'model.pt')
+        writer.add_scalar("Loss/train", epoch_loss, epoch)
+    torch.save(best_model.state_dict(), './model/best_model.pt')
 
 def do_eval():
     N = 901
@@ -135,7 +159,7 @@ if __name__ == "__main__":
 
     EMBEDDING_DIM = 64
     HIDDEN_DIM = 64
-    num_epochs = 100
+    num_epochs = 10
     model = AdamNet(EMBEDDING_DIM, HIDDEN_DIM, len(word_to_ix), len(tag_to_ix))
     loss_function = nn.NLLLoss()
     optimizer = optim.SGD(model.parameters(), lr=0.1)
@@ -144,4 +168,7 @@ if __name__ == "__main__":
     # Move the model to GPU if we can
     model.to(device)
     do_train(model, num_epochs, train, test)
+    writer.flush()
+    writer.close()
+
 
