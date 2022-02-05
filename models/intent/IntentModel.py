@@ -24,7 +24,7 @@ class IntentModel:
 
         # 문장내 키워드 추출(불용어 제거)
         keywords = self.p.get_keywords(pos, without_tag=True)
-        sequences = [self.p.get_wordidx_sequence(keywords)]
+        sequences = [self.p.get_wordidx_sequence(keywords, intent=True)]
 
         # 단어 시퀀스 벡터 크기
         from config.GlobalParams import MAX_SEQ_LEN

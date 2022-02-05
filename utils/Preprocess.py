@@ -45,7 +45,7 @@ class Preprocess:
         return word_list
 
     # 키워드를 단어 인덱스 시퀀스로 변환
-    def get_wordidx_sequence(self, keywords):
+    def get_wordidx_sequence(self, keywords, intent=False):
         if self.word_index is None:
             return []
 
@@ -56,5 +56,7 @@ class Preprocess:
             except KeyError:
                 # 해당 단어가 사전에 없는 경우, OOV 처리
                 w2i.append(self.word_index['OOV'])
+        if intent:
+            w2i = [i+1 for i in w2i]
         return w2i
 
