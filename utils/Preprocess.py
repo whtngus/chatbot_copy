@@ -13,6 +13,7 @@ class Preprocess:
         else:
             self.word_index = None
 
+        self.word_index = {k:v-1 for k,v in self.word_index.items()}
         # 형태소 분석기 초기화
         self.komoran = Komoran(userdic=userdic)
 
